@@ -1,3 +1,4 @@
 bin/
 .*
+*.os
 compile_commands.json
