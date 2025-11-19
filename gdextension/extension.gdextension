@@ -3,5 +3,5 @@ entry_symbol = "gdextension_init"
 compatibility_minimum = "4.5"
 
 [libraries]
-linux.template_debug.x86_64 = "res://bin/libwayland-protocols.linux.template_debug.x86_64.so"
-linux.template_release.x86_64 = "res://bin/libwayland-protocols.linux.template_release.x86_64.so"
+linux.template_debug.x86_64 = "res://bin/libwayland_protocols.linux.template_debug.x86_64.so"
+linux.template_release.x86_64 = "res://bin/libwayland_protocols.linux.template_release.x86_64.so"

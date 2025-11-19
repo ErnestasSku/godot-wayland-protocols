@@ -28,7 +28,7 @@ else:
 
 
 # output name
-lib_name = f"bin/wayland-protocols.{platform}.{target}.{arch}"
+lib_name = f"bin/wayland_protocols.{platform}.{target}.{arch}"
 if platform == "linux":
     lib_name += ".so"
 
