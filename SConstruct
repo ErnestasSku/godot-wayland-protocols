@@ -35,3 +35,6 @@ if platform == "linux":
 library = env.SharedLibrary(lib_name, sources)
 
 Default(library)
+
+env.Tool('compilation_db')
+env.CompilationDatabase('compile_commands.json')

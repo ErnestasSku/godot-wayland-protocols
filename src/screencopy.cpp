@@ -1,4 +1,6 @@
-#include "../include/screencopy.h"
+#include "screencopy.h"
+#include "godot_cpp/classes/display_server.hpp"
+#include "godot_cpp/classes/font_file.hpp"
 #include "godot_cpp/core/class_db.hpp"
 #include "godot_cpp/variant/packed_byte_array.hpp"
 #include "godot_cpp/variant/utility_functions.hpp"
@@ -14,6 +16,7 @@
 #include <wayland-client-protocol.h>
 
 using namespace godot;
+
 
 void Screencopy::registry_global(void *data,
                                      struct wl_registry *wl_registry,

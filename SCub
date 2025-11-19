@@ -1,0 +1,6 @@
+#!/usr/env Python
+Import("env")
+
+env.Append(CPPPATH=["include"])
+
+env.add_source_files(env.module_sources, "src/*.cpp")
