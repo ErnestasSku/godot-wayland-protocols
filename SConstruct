@@ -9,7 +9,7 @@ target = ARGUMENTS.get("target", "template_debug")
 
 env = SConscript("godot-cpp/SConstruct", exports={"platform": platform, "arch": arch, "target": target})
 
-env.Append(CPPPATH=["src/", "include/", "godot-cpp/include", "godot-cpp/gen/include"])
+env.Append(CPPPATH=["src/", "include/", "include/generated/", "godot-cpp/include", "godot-cpp/gen/include"])
 
 # godot-cpp files, from submodule
 env.Append(LIBPATH=["godot-cpp/bin"])
