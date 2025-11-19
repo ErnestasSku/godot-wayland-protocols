@@ -1,11 +1,11 @@
-#include "screencopy_node.h"
+#include "screencopy.h"
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/defs.hpp>
 
 void initialize_screencopy_module(godot::ModuleInitializationLevel p_level) {
   if (p_level != godot::MODULE_INITIALIZATION_LEVEL_SCENE)
     return;
-  ClassDB::register_class<ScreencopyNode>();
+  ClassDB::register_class<Screencopy>();
 }
 
 void uninitialize_screencopy_module(godot::ModuleInitializationLevel p_level) {

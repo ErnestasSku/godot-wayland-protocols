@@ -1,6 +1,7 @@
 #ifndef SCREENCOPY_NODE_H
 #define SCREENCOPY_NODE_H
 
+#include "godot_cpp/classes/ref_counted.hpp"
 #include <cstdint>
 #include <godot_cpp/classes/image.hpp>
 #include <godot_cpp/classes/node.hpp>
@@ -27,8 +28,8 @@ struct frame_tmp_data {
   uint32_t format;
 };
 
-class ScreencopyNode : public Node {
-  GDCLASS(ScreencopyNode, Node);
+class Screencopy : public RefCounted {
+  GDCLASS(Screencopy, RefCounted);
 
 private:
   wl_display *display = nullptr;
@@ -67,11 +68,10 @@ private:
 
 protected:
   static void _bind_methods();
-  void _notification(int p_what);
 
 public:
-  ScreencopyNode();
-  ~ScreencopyNode();
+  Screencopy();
+  ~Screencopy();
 
   void init_wayland();
   void capture_output(bool with_damage = false);

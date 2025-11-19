@@ -1,6 +1,5 @@
-#include "../include/screencopy_node.h"
+#include "../include/screencopy.h"
 #include "godot_cpp/core/class_db.hpp"
-#include "godot_cpp/core/memory.hpp"
 #include "godot_cpp/variant/packed_byte_array.hpp"
 #include "godot_cpp/variant/utility_functions.hpp"
 #include "wlr-screencopy-unstable-v1-client-protocol.h"
@@ -16,11 +15,11 @@
 
 using namespace godot;
 
-void ScreencopyNode::registry_global(void *data,
+void Screencopy::registry_global(void *data,
                                      struct wl_registry *wl_registry,
                                      uint32_t id, const char *interface,
                                      uint32_t version) {
-  auto *self = static_cast<ScreencopyNode *>(data);
+  auto *self = static_cast<Screencopy *>(data);
   if (strcmp(interface, zwlr_screencopy_manager_v1_interface.name) == 0) {
     self->manager = static_cast<zwlr_screencopy_manager_v1 *>(wl_registry_bind(
         wl_registry, id, &zwlr_screencopy_manager_v1_interface, 3));
@@ -33,7 +32,7 @@ void ScreencopyNode::registry_global(void *data,
   }
 }
 
-void ScreencopyNode::registry_global_remove(void *data,
+void Screencopy::registry_global_remove(void *data,
                                             struct wl_registry *wl_registry,
                                             uint32_t id) {}
 
@@ -50,11 +49,11 @@ int create_shm_file(off_t size) {
   return fd;
 }
 
-void ScreencopyNode::output_buffer(void *data,
+void Screencopy::output_buffer(void *data,
                                    struct zwlr_screencopy_frame_v1 *frame,
                                    uint32_t format, uint32_t width,
                                    uint32_t height, uint32_t stride) {
-  auto *self = static_cast<ScreencopyNode *>(data);
+  auto *self = static_cast<Screencopy *>(data);
 
   size_t size = stride * height;
   int fd = create_shm_file(size);
@@ -81,18 +80,18 @@ void ScreencopyNode::output_buffer(void *data,
   wl_display_roundtrip(self->display);
 }
 
-void ScreencopyNode::output_flags(void *data,
+void Screencopy::output_flags(void *data,
                                   struct zwlr_screencopy_frame_v1 *frame,
                                   uint32_t flags) {
   // Handle flags (e.g., check for Y-invert or other buffer properties)
   // Let's do nothing for now.
 }
 
-void ScreencopyNode::output_ready(void *data,
+void Screencopy::output_ready(void *data,
                                   struct zwlr_screencopy_frame_v1 *frame,
                                   uint32_t tv_sec_hi, uint32_t tv_sec_lo,
                                   uint32_t tv_nsec) {
-  auto *self = static_cast<ScreencopyNode *>(data);
+  auto *self = static_cast<Screencopy *>(data);
 
   struct frame_tmp_data *fr_data = &self->frame_data;
   size_t size = fr_data->stride * fr_data->height;
@@ -151,7 +150,7 @@ void ScreencopyNode::output_ready(void *data,
   zwlr_screencopy_frame_v1_destroy(frame);
 }
 
-void ScreencopyNode::output_failed(void *data,
+void Screencopy::output_failed(void *data,
                                    struct zwlr_screencopy_frame_v1 *frame) {
   UtilityFunctions::printerr("Screencopy failed");
 
@@ -159,7 +158,7 @@ void ScreencopyNode::output_failed(void *data,
   zwlr_screencopy_frame_v1_destroy(frame);
 }
 
-void ScreencopyNode::output_damage(void *data,
+void Screencopy::output_damage(void *data,
                                    struct zwlr_screencopy_frame_v1 *frame,
                                    uint32_t x, uint32_t y, uint32_t width,
                                    uint32_t height) {
@@ -168,7 +167,7 @@ void ScreencopyNode::output_damage(void *data,
   // TODO: see later
 }
 
-void ScreencopyNode::output_linux_dmabuf(void *data,
+void Screencopy::output_linux_dmabuf(void *data,
                                          struct zwlr_screencopy_frame_v1 *frame,
                                          uint32_t format, uint32_t width,
                                          uint32_t height) {
@@ -176,31 +175,25 @@ void ScreencopyNode::output_linux_dmabuf(void *data,
   // Empty for now, will look into later
 }
 
-void ScreencopyNode::output_buffer_done(
+void Screencopy::output_buffer_done(
     void *data, struct zwlr_screencopy_frame_v1 *frame) {
   // Handle buffer completion (optional, can leave empty if not needed)
   UtilityFunctions::print("output buffer called");
 }
 
-void ScreencopyNode::_bind_methods() {
-  ClassDB::bind_method(D_METHOD("init_wayland"), &ScreencopyNode::init_wayland);
+void Screencopy::_bind_methods() {
+  ClassDB::bind_method(D_METHOD("init_wayland"), &Screencopy::init_wayland);
   ClassDB::bind_method(D_METHOD("capture_output", "with_damage"),
-                       &ScreencopyNode::capture_output);
+                       &Screencopy::capture_output);
   ClassDB::bind_method(D_METHOD("get_captured_image"),
-                       &ScreencopyNode::get_captured_image);
+                       &Screencopy::get_captured_image);
   ADD_SIGNAL(MethodInfo("capture_ready",
                         PropertyInfo(Variant::OBJECT, "image",
                                      PROPERTY_HINT_RESOURCE_TYPE, "Image")));
 }
 
-void ScreencopyNode::_notification(int p_what) {
-  if (p_what == NOTIFICATION_READY) {
-    init_wayland();
-  }
-}
-
-ScreencopyNode::ScreencopyNode() {}
-ScreencopyNode::~ScreencopyNode() {
+Screencopy::Screencopy() {}
+Screencopy::~Screencopy() {
   if (shm)
     wl_shm_destroy(shm);
   if (manager)
@@ -213,7 +206,7 @@ ScreencopyNode::~ScreencopyNode() {
     wl_display_disconnect(display);
 }
 
-void ScreencopyNode::init_wayland() {
+void Screencopy::init_wayland() {
   display = wl_display_connect(nullptr);
   if (!display) {
     UtilityFunctions::printerr("Failed to connect to Wayland display");
@@ -227,7 +220,7 @@ void ScreencopyNode::init_wayland() {
   wl_display_roundtrip(display);
 }
 
-void ScreencopyNode::capture_output(bool with_damage) {
+void Screencopy::capture_output(bool with_damage) {
   if (!manager || !target_output)
     return;
 
@@ -247,4 +240,4 @@ void ScreencopyNode::capture_output(bool with_damage) {
   wl_display_roundtrip(display);
 }
 
-Ref<Image> ScreencopyNode::get_captured_image() const { return captured_image; }
+Ref<Image> Screencopy::get_captured_image() const { return captured_image; }
