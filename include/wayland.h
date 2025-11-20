@@ -7,8 +7,8 @@
 #include <wayland-client-protocol.h>
 
 extern "C" {
-  #include "wlr-workspace-unstable-v1.h"
-  #include "wlr-screencopy-unstable-v1.h"
+#include "wlr-screencopy-unstable-v1.h"
+#include "ext-workspace-v1.h"
 }
 
 class Wayland {
@@ -17,9 +17,8 @@ public:
   wl_display *display = nullptr;
   wl_registry *registry = nullptr;
 
-  // protocol specific handles.
-  // TODO: Also maybe should be private
-  zwlr_workspace_manager_v1 *workspace_manager = nullptr;
+  // Protocol specific handles
+  ext_workspace_manager_v1 *workspace_manager = nullptr;
   zwlr_screencopy_manager_v1 *screencopy_manager = nullptr;
   
   std::string test;

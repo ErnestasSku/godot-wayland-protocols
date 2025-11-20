@@ -1,5 +1,7 @@
 #include "wayland.h"
 #include "godot_cpp/variant/utility_functions.hpp"
+#include "wlr-screencopy-unstable-v1.h"
+#include "ext-workspace-v1.h"
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
 
