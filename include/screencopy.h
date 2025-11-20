@@ -14,7 +14,7 @@
 #include <wayland-client-protocol.h>
 #include <wayland-client.h>
 extern "C" {
-#include "wlr-screencopy-unstable-v1-client-protocol.h"
+#include "wlr-screencopy-unstable-v1.h"
 }
 
 using namespace godot;

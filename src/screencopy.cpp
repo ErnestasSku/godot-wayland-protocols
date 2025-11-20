@@ -4,7 +4,7 @@
 #include "godot_cpp/core/class_db.hpp"
 #include "godot_cpp/variant/packed_byte_array.hpp"
 #include "godot_cpp/variant/utility_functions.hpp"
-#include "wlr-screencopy-unstable-v1-client-protocol.h"
+#include "wlr-screencopy-unstable-v1.h"
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
