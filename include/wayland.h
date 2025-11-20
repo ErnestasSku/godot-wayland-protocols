@@ -2,7 +2,9 @@
 #define WAYLAND_H
 
 #include <cstdint>
+#include <functional>
 #include <string>
+#include <vector>
 #include <wayland-client-core.h>
 #include <wayland-client-protocol.h>
 
@@ -13,24 +15,40 @@ extern "C" {
 
 class Wayland {
 public:
-  static Wayland *get_singleton(); 
-  wl_display *display = nullptr;
-  wl_registry *registry = nullptr;
+  static Wayland *get_singleton();
+  void add_output(wl_output *output);
 
-  // Protocol specific handles
-  ext_workspace_manager_v1 *workspace_manager = nullptr;
-  zwlr_screencopy_manager_v1 *screencopy_manager = nullptr;
-  
   std::string test;
   int test_counter = 0;
 
 private:
+  Wayland();
+  ~Wayland();
+  wl_display *display = nullptr;
+  wl_registry *registry = nullptr;
+  std::vector<wl_output *> outputs;
+  wl_shm *shm = nullptr;
+
+  // NOTE: With c++26, perhaps this mapper can be replaced with a simpler 'match'
+  // pattern matching feature, for registering wayland globals
+  struct RegistryHandlerMapper {
+    const char *name;
+    std::function<void(uint32_t id, uint32_t version)> handler;
+  };
+
+  std::vector<RegistryHandlerMapper> handlers;
+
+  // Protocol specific handles
+  ext_workspace_manager_v1 *workspace_manager = nullptr;
+  zwlr_screencopy_manager_v1 *screencopy_manager = nullptr;
+
   static Wayland *singleton;
   static void registry_global(void *data, wl_registry *wl_registry, uint32_t id,
                               const char *interface, uint32_t version);
   static void registry_remove(void *data, struct wl_registry *wl_registry,
                               uint32_t id);
   void init_wayland();
+  void init_registry_mapper();
   bool initialized = false;
   friend class Workspace;
 };
