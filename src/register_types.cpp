@@ -1,15 +1,15 @@
 #include "godot_cpp/classes/engine.hpp"
 #include "godot_cpp/core/memory.hpp"
 #include "screencopy.h"
-#include "workspace.h"
 #include "wayland.h"
+#include "workspace.h"
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/defs.hpp>
 
 void initialize_wayland_module(godot::ModuleInitializationLevel p_level) {
   if (p_level != godot::MODULE_INITIALIZATION_LEVEL_SCENE)
     return;
-  
+
   ClassDB::register_class<Screencopy>();
   ClassDB::register_class<Workspace>();
 
