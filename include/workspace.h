@@ -4,7 +4,12 @@
 #include "ext-workspace-v1.h"
 #include "godot_cpp/classes/ref_counted.hpp"
 #include "godot_cpp/classes/wrapped.hpp"
+#include "godot_cpp/variant/utility_functions.hpp"
 #include "wayland.h"
+#include <memory>
+#include <vector>
+#include <wayland-client-core.h>
+#include <wayland-client-protocol.h>
 
 using namespace godot;
 
@@ -22,7 +27,66 @@ private:
 
   // ext_workspace_group_hanlder
 
+  static void workspace_group_capabilities(void *,
+                                           ext_workspace_group_handle_v1 *,
+                                           uint32_t);
+  static void
+  workspace_group_output_enter(void *, struct ext_workspace_group_handle_v1 *,
+                               struct wl_output *);
+
+  static void
+  workspace_group_output_leave(void *, struct ext_workspace_group_handle_v1 *,
+                               struct wl_output *);
+  static void
+  workspace_group_workspace_enter(void *,
+                                  struct ext_workspace_group_handle_v1 *,
+                                  struct ext_workspace_handle_v1 *);
+
+  static void
+  workspace_group_workspace_leave(void *data,
+                                  struct ext_workspace_group_handle_v1 *,
+                                  struct ext_workspace_handle_v1 *);
+  static void workspace_group_remove(void *data,
+                                     struct ext_workspace_group_handle_v1 *);
+
   // ext_workspace_handle
+
+  class WorkspaceGroupWrapper {
+  public:
+    WorkspaceGroupWrapper(ext_workspace_group_handle_v1 *handle) {
+      this->handle = handle;
+    }
+
+    ~WorkspaceGroupWrapper() {
+      if (handle) {
+        UtilityFunctions::print("DEBUG: workspace group destructor was called");
+        auto wayland = Wayland::get_singleton();
+        ext_workspace_group_handle_v1_destroy(handle);
+        wl_display_roundtrip(wayland->display);
+      }
+    }
+
+    ext_workspace_group_handle_v1 *handle;
+    ext_workspace_group_handle_v1_group_capabilities capabilities;
+    std::vector<ext_workspace_handle_v1 *> workspaces;
+    std::vector<wl_output *> outputs;
+  };
+
+  class WorkspaveWrapper {
+    ext_workspace_handle_v1 *handle;
+    std::string id;
+    std::string name;
+    // TODO: skipping coordinates for now
+    ext_workspace_handle_v1_state state;
+    ext_workspace_handle_v1_workspace_capabilities capabilities;
+  };
+
+  // std::vector<ext_workspace_group_handle_v1 *> group_handles;
+  std::vector<ext_workspace_handle_v1 *> workspace_handles;
+  // std::vector<WorkspaceGroupWrapper> groups;
+  // std::vector<WorkspaveWrapper> workspaces;
+
+  std::vector<std::unique_ptr<WorkspaceGroupWrapper>> groups;
 
 protected:
   static void _bind_methods();

@@ -6,7 +6,12 @@
 #include "godot_cpp/core/property_info.hpp"
 #include "godot_cpp/variant/utility_functions.hpp"
 #include "wayland.h"
+#include <algorithm>
+#include <cstddef>
+#include <cstdint>
+#include <memory>
 #include <wayland-client-core.h>
+#include <wayland-client-protocol.h>
 
 using namespace godot;
 
@@ -40,7 +45,7 @@ void Workspace::register_to_workspace_events() {
   ext_workspace_manager_v1_add_listener(wayland->workspace_manager,
                                         &workspace_manager_listener, this);
 
-  ext_workspace_manager_v1_commit(wayland->workspace_manager);
+  // ext_workspace_manager_v1_commit(wayland->workspace_manager);
 
   wl_display_roundtrip(wayland->display);
 }
@@ -55,8 +60,36 @@ void Workspace::_bind_methods() {
 void Workspace::workspace_group(void *data, ext_workspace_manager_v1 *manager,
                                 ext_workspace_group_handle_v1 *group_handle) {
 
+  auto self = static_cast<Workspace *>(data);
+
+  // Workspace::WorkspaceGroupWrapper *workspace_group =  new
+  // Workspace::WorkspaceGroupWrapper(group_handle);
+  auto workspace_group =
+      std::make_unique<Workspace::WorkspaceGroupWrapper>(group_handle);
+  // auto group = std::make_unique<WorkspaceGroupWrapper *>(workspace_group);
+  // Workspace::WorkspaceGroupWrapper {
+  //   .handle = group_handle
+  // } workspace_group;
+
+  self->groups.push_back(std::move(workspace_group));
+
+  
+   ext_workspace_group_handle_v1_listener group_listener = {
+       .capabilities = workspace_group_capabilities,
+       .output_enter = workspace_group_output_enter,
+       .output_leave = workspace_group_output_leave,
+       .workspace_enter = workspace_group_workspace_enter,
+       .workspace_leave = workspace_group_workspace_leave,
+       .removed = workspace_group_remove};
+
+  ext_workspace_group_handle_v1_add_listener(group_handle, &group_listener, data);
+  wl_display_roundtrip(Wayland::get_singleton()->display);
+  
+  // self->groups.push_back()
   // Workspace group in Niri relates to workspaces belonging to specific monitor
   UtilityFunctions::print("Workspace group has been created");
+
+  // auto user_data = ext_workspace_group_handle_v1_get_user_data(group_handle);
 };
 
 void Workspace::workspace(void *data, ext_workspace_manager_v1 *manager,
@@ -64,19 +97,176 @@ void Workspace::workspace(void *data, ext_workspace_manager_v1 *manager,
 
   auto *self = static_cast<Workspace *>(data);
   UtilityFunctions::print("New workspace created");
+  self->workspace_handles.push_back(workspace_handle);
   // TODO: send actual data
   // auto workspace_data =
   // ext_workspace_handle_v1_get_user_data(workspace_handle);
   // wl_display_roundtrip(struct wl_display *display)
 
-  UtilityFunctions::print("Emit signal");
-  self->emit_signal("workspace_created");
+  // UtilityFunctions::print("Emit signal");
+  // self->emit_signal("workspace_created");
 }
 
 void Workspace::workspace_done(void *data, ext_workspace_manager_v1 *manager) {
   UtilityFunctions::print("Workspace done");
+  // This means the manager sent all of the relevant data. Now we process it?
+  // Build out structures properly.
+
+  // 1. handle workspace_groups
+  auto self = static_cast<Workspace *>(data);
+
+  // for (auto i : self->group_handles) {
+  //   // ext_workspace_manager_v1_set_user_data(struct ext_workspace_manager_v1
+  //   *ext_workspace_manager_v1, void *user_data)
+
+  // }
+
+   // ext_workspace_group_handle_v1_listener group_listener = {
+   //     .capabilities = workspace_group_capabilities,
+   //     .output_enter = workspace_group_output_enter,
+   //     .output_leave = workspace_group_output_leave,
+   //     .workspace_enter = workspace_group_workspace_enter,
+   //     .workspace_leave = workspace_group_workspace_leave,
+   //     .removed = workspace_group_remove};
+  
+  
+  // for (auto i : self->group_handles) {
+  //   // ext_workspace_manager_v1_set_user_data(struct ext_workspace_manager_v1
+  //   *ext_workspace_manager_v1, void *user_data)
+
+  // }
+
+
+  // 
+  UtilityFunctions::print("We have [groups]: ", self->groups.size());
+  UtilityFunctions::print("We have [workspaces]: ", (*self->groups[0]).workspaces.size() );
+  UtilityFunctions::print("We have [wl_outputs]", (*self->groups[0]).outputs.size()  );
+  UtilityFunctions::print("We have [capabilities]", (*self->groups[0]).capabilities );
 }
 void Workspace::workspace_finished(void *data,
                                    ext_workspace_manager_v1 *manager) {
+  // TODO: This meanes no more events will be sent
   UtilityFunctions::print("Workspace finished");
 }
+
+// Workspace group event listeners
+
+void Workspace::workspace_group_capabilities(
+    void *data, ext_workspace_group_handle_v1 *group_handle,
+    uint32_t capabilities) {
+
+  auto self = static_cast<Workspace *>(data);
+  // TODO: This will be repeated multiple times. So move it to a class method.
+  auto workspace_group = std::find_if(
+      self->groups.begin(), self->groups.end(),
+      [group_handle](const std::unique_ptr<WorkspaceGroupWrapper> &elem) {
+        return elem->handle == group_handle;
+      });
+
+  if (workspace_group == self->groups.end()) {
+    return;
+  }
+
+  (*workspace_group)->capabilities =
+      static_cast<ext_workspace_group_handle_v1_group_capabilities>(
+          capabilities);
+}
+
+void Workspace::workspace_group_output_enter(
+    void *data, struct ext_workspace_group_handle_v1 *group_handle,
+    struct wl_output *output) {
+
+  auto self = static_cast<Workspace *>(data);
+  auto workspace_group = std::find_if(
+      self->groups.begin(), self->groups.end(),
+      [group_handle](const std::unique_ptr<WorkspaceGroupWrapper> &elem) {
+        return elem->handle == group_handle;
+      });
+
+  if (workspace_group == self->groups.end()) {
+    return;
+  }
+
+  (*workspace_group)->outputs.push_back(output);
+}
+
+void Workspace::workspace_group_output_leave(
+    void *data, struct ext_workspace_group_handle_v1 *group_handle,
+    struct wl_output *output) {
+  auto self = static_cast<Workspace *>(data);
+  auto workspace_group = std::find_if(
+      self->groups.begin(), self->groups.end(),
+      [group_handle](const std::unique_ptr<WorkspaceGroupWrapper> &elem) {
+        return elem->handle == group_handle;
+      });
+
+  if (workspace_group == self->groups.end()) {
+    return;
+  }
+
+  (*workspace_group)
+      ->outputs.erase(std::find_if(
+          (*workspace_group)->outputs.begin(),
+          (*workspace_group)->outputs.end(),
+          [output](const wl_output *elem) { return elem == output; }));
+}
+
+void Workspace::workspace_group_workspace_enter(
+    void *data, struct ext_workspace_group_handle_v1 *group_handle,
+    struct ext_workspace_handle_v1 *workspace) {
+
+  auto self = static_cast<Workspace *>(data);
+  auto workspace_group = std::find_if(
+      self->groups.begin(), self->groups.end(),
+      [group_handle](const std::unique_ptr<WorkspaceGroupWrapper> &elem) {
+        return elem->handle == group_handle;
+      });
+
+  if (workspace_group == self->groups.end()) {
+    return;
+  }
+
+  (*workspace_group)->workspaces.push_back(workspace);
+}
+
+void Workspace::workspace_group_workspace_leave(
+    void *data, struct ext_workspace_group_handle_v1 *group_handle,
+    struct ext_workspace_handle_v1 *workspace) {
+
+  auto self = static_cast<Workspace *>(data);
+  auto workspace_group = std::find_if(
+      self->groups.begin(), self->groups.end(),
+      [group_handle](const std::unique_ptr<WorkspaceGroupWrapper> &elem) {
+        return elem->handle == group_handle;
+      });
+
+  if (workspace_group == self->groups.end()) {
+    return;
+  }
+
+  (*workspace_group)
+      ->workspaces.erase(
+          std::find_if((*workspace_group)->workspaces.begin(),
+                       (*workspace_group)->workspaces.end(),
+                       [workspace](const ext_workspace_handle_v1 *elem) {
+                         return elem == workspace;
+                       }));
+}
+
+void Workspace::workspace_group_remove(
+    void *data, struct ext_workspace_group_handle_v1 *group_handle) {
+  auto self = static_cast<Workspace *>(data);
+  auto workspace_group = std::find_if(
+      self->groups.begin(), self->groups.end(),
+      [group_handle](const std::unique_ptr<WorkspaceGroupWrapper> &elem) {
+        return elem->handle == group_handle;
+      });
+
+  if (workspace_group == self->groups.end()) {
+    return;
+  }
+
+  self->groups.erase(workspace_group);
+}
+
+// Workspace evebt listeners
