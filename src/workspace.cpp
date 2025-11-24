@@ -7,7 +7,6 @@
 #include "godot_cpp/variant/utility_functions.hpp"
 #include "wayland.h"
 #include <algorithm>
-#include <cstddef>
 #include <cstdint>
 #include <memory>
 #include <wayland-client-core.h>
@@ -44,6 +43,7 @@ void Workspace::register_to_workspace_events() {
 
   ext_workspace_manager_v1_add_listener(wayland->workspace_manager,
                                         &workspace_manager_listener, this);
+  // wl_display_roundtrip(Wayland::get_singleton()->display);
 
   // ext_workspace_manager_v1_commit(wayland->workspace_manager);
 
@@ -73,18 +73,18 @@ void Workspace::workspace_group(void *data, ext_workspace_manager_v1 *manager,
 
   self->groups.push_back(std::move(workspace_group));
 
-  
-   ext_workspace_group_handle_v1_listener group_listener = {
-       .capabilities = workspace_group_capabilities,
-       .output_enter = workspace_group_output_enter,
-       .output_leave = workspace_group_output_leave,
-       .workspace_enter = workspace_group_workspace_enter,
-       .workspace_leave = workspace_group_workspace_leave,
-       .removed = workspace_group_remove};
+  ext_workspace_group_handle_v1_listener group_listener = {
+      .capabilities = workspace_group_capabilities,
+      .output_enter = workspace_group_output_enter,
+      .output_leave = workspace_group_output_leave,
+      .workspace_enter = workspace_group_workspace_enter,
+      .workspace_leave = workspace_group_workspace_leave,
+      .removed = workspace_group_remove};
 
-  ext_workspace_group_handle_v1_add_listener(group_handle, &group_listener, data);
+  ext_workspace_group_handle_v1_add_listener(group_handle, &group_listener,
+                                             data);
   wl_display_roundtrip(Wayland::get_singleton()->display);
-  
+
   // self->groups.push_back()
   // Workspace group in Niri relates to workspaces belonging to specific monitor
   UtilityFunctions::print("Workspace group has been created");
@@ -96,15 +96,22 @@ void Workspace::workspace(void *data, ext_workspace_manager_v1 *manager,
                           ext_workspace_handle_v1 *workspace_handle) {
 
   auto *self = static_cast<Workspace *>(data);
-  UtilityFunctions::print("New workspace created");
-  self->workspace_handles.push_back(workspace_handle);
-  // TODO: send actual data
-  // auto workspace_data =
-  // ext_workspace_handle_v1_get_user_data(workspace_handle);
-  // wl_display_roundtrip(struct wl_display *display)
+  // UtilityFunctions::print("New workspace created");
 
-  // UtilityFunctions::print("Emit signal");
-  // self->emit_signal("workspace_created");
+  auto workspace = std::make_unique<WorkspaceWrapper>(workspace_handle);
+  self->workspaces.push_back(std::move(workspace));
+
+  ext_workspace_handle_v1_listener workspace_listener{
+      .id = workspace_id,
+      .name = workspace_name,
+      .coordinates = workspace_coordinates,
+      .state = workspace_state,
+      .capabilities = workspace_capabilities,
+      .removed = workspace_removed};
+
+  ext_workspace_handle_v1_add_listener(workspace_handle, &workspace_listener,
+                                       data);
+  wl_display_roundtrip(Wayland::get_singleton()->display);
 }
 
 void Workspace::workspace_done(void *data, ext_workspace_manager_v1 *manager) {
@@ -115,34 +122,16 @@ void Workspace::workspace_done(void *data, ext_workspace_manager_v1 *manager) {
   // 1. handle workspace_groups
   auto self = static_cast<Workspace *>(data);
 
-  // for (auto i : self->group_handles) {
-  //   // ext_workspace_manager_v1_set_user_data(struct ext_workspace_manager_v1
-  //   *ext_workspace_manager_v1, void *user_data)
-
-  // }
-
-   // ext_workspace_group_handle_v1_listener group_listener = {
-   //     .capabilities = workspace_group_capabilities,
-   //     .output_enter = workspace_group_output_enter,
-   //     .output_leave = workspace_group_output_leave,
-   //     .workspace_enter = workspace_group_workspace_enter,
-   //     .workspace_leave = workspace_group_workspace_leave,
-   //     .removed = workspace_group_remove};
-  
-  
-  // for (auto i : self->group_handles) {
-  //   // ext_workspace_manager_v1_set_user_data(struct ext_workspace_manager_v1
-  //   *ext_workspace_manager_v1, void *user_data)
-
-  // }
-
-
-  // 
+  //
   UtilityFunctions::print("We have [groups]: ", self->groups.size());
-  UtilityFunctions::print("We have [workspaces]: ", (*self->groups[0]).workspaces.size() );
-  UtilityFunctions::print("We have [wl_outputs]", (*self->groups[0]).outputs.size()  );
-  UtilityFunctions::print("We have [capabilities]", (*self->groups[0]).capabilities );
+  UtilityFunctions::print("We have [workspaces]: ",
+                          (*self->groups[0]).workspaces.size());
+  UtilityFunctions::print("We have [wl_outputs]",
+                          (*self->groups[0]).outputs.size());
+  UtilityFunctions::print("We have [capabilities]",
+                          (*self->groups[0]).capabilities);
 }
+
 void Workspace::workspace_finished(void *data,
                                    ext_workspace_manager_v1 *manager) {
   // TODO: This meanes no more events will be sent
@@ -270,3 +259,87 @@ void Workspace::workspace_group_remove(
 }
 
 // Workspace evebt listeners
+void Workspace::workspace_id(
+    void *data, struct ext_workspace_handle_v1 *ext_workspace_handle_v1,
+    const char *id) {
+  auto self = static_cast<Workspace *>(data);
+  auto workspace =
+      std::find_if(self->workspaces.begin(), self->workspaces.end(),
+                   [ext_workspace_handle_v1](auto &elem) {
+                     return elem->handle == ext_workspace_handle_v1;
+                   });
+  if (workspace != self->workspaces.end()) {
+    (*workspace)->id = id;
+  }
+}
+
+void Workspace::workspace_name(
+    void *data, struct ext_workspace_handle_v1 *ext_workspace_handle_v1,
+    const char *name) {
+  auto self = static_cast<Workspace *>(data);
+  auto workspace =
+      std::find_if(self->workspaces.begin(), self->workspaces.end(),
+                   [ext_workspace_handle_v1](auto &elem) {
+                     return elem->handle == ext_workspace_handle_v1;
+                   });
+  if (workspace != self->workspaces.end()) {
+    (*workspace)->name = name;
+  }
+}
+
+void Workspace::workspace_coordinates(
+    void *data, struct ext_workspace_handle_v1 *ext_workspace_handle_v1,
+    struct wl_array *coordinates) {
+  UtilityFunctions::print("Coords: ", coordinates);
+  auto self = static_cast<Workspace *>(data);
+  auto workspace =
+      std::find_if(self->workspaces.begin(), self->workspaces.end(),
+                   [ext_workspace_handle_v1](auto &elem) {
+                     return elem->handle == ext_workspace_handle_v1;
+                   });
+  if (workspace != self->workspaces.end()) {
+    (*workspace)->coordinates = coordinates;
+  }
+}
+
+void Workspace::workspace_state(
+    void *data, struct ext_workspace_handle_v1 *ext_workspace_handle_v1,
+    uint32_t state) {
+
+  auto self = static_cast<Workspace *>(data);
+  auto workspace =
+      std::find_if(self->workspaces.begin(), self->workspaces.end(),
+                   [ext_workspace_handle_v1](auto &elem) {
+                     return elem->handle == ext_workspace_handle_v1;
+                   });
+  if (workspace != self->workspaces.end()) {
+    (*workspace)->state = static_cast<ext_workspace_handle_v1_state>(state);
+  }
+}
+
+void Workspace::workspace_capabilities(
+    void *data, struct ext_workspace_handle_v1 *ext_workspace_handle_v1,
+    uint32_t capabilities) {
+  auto self = static_cast<Workspace *>(data);
+  auto workspace =
+      std::find_if(self->workspaces.begin(), self->workspaces.end(),
+                   [ext_workspace_handle_v1](auto &elem) {
+                     return elem->handle == ext_workspace_handle_v1;
+                   });
+  if (workspace != self->workspaces.end()) {
+    (*workspace)->capabilities =
+        static_cast<ext_workspace_handle_v1_workspace_capabilities>(
+            capabilities);
+  }
+}
+void Workspace::workspace_removed(
+    void *data, struct ext_workspace_handle_v1 *ext_workspace_handle_v1) {
+
+  auto self = static_cast<Workspace *>(data);
+
+  self->workspaces.erase(
+      std::find_if(self->workspaces.begin(), self->workspaces.end(),
+                   [ext_workspace_handle_v1](auto &elem) {
+                     return elem->handle == ext_workspace_handle_v1;
+                   }));
+}
