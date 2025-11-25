@@ -106,14 +106,12 @@ private:
     ext_workspace_handle_v1_workspace_capabilities capabilities;
   };
 
-  // std::vector<ext_workspace_group_handle_v1 *> group_handles;
-  // std::vector<ext_workspace_handle_v1 *> workspace_handles;
-  // std::vector<WorkspaceGroupWrapper> groups;
-  // std::vector<WorkspaveWrapper> workspaces;
-
   std::vector<std::unique_ptr<WorkspaceGroupWrapper>> groups;
   std::vector<std::unique_ptr<WorkspaceWrapper>> workspaces;
 
+  WorkspaceGroupWrapper* find_workspace_group_wrapper(ext_workspace_group_handle_v1*);
+  WorkspaceWrapper* find_workspace_wrapper(ext_workspace_handle_v1*);
+  
 protected:
   static void _bind_methods();
 
