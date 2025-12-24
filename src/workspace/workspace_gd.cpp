@@ -3,8 +3,8 @@
 #include "godot_cpp/core/object.hpp"
 #include "workspace/workspace.h"
 #include "workspace/workspace_group.h"
-#include "workspace/workspace_manager.h"
 #include "workspace/workspace_group_view_gd.h"
+#include "workspace/workspace_manager.h"
 #include "workspace/workspace_view_gd.h"
 #include <godot_cpp/variant/utility_functions.hpp>
 #include <memory>
@@ -18,8 +18,8 @@ WorkspaceGD::~WorkspaceGD() = default;
 void WorkspaceGD::_bind_methods() {
   ADD_SIGNAL(MethodInfo("workspace_added",
                         PropertyInfo(Variant::OBJECT, "workspace", PROPERTY_HINT_RESOURCE_TYPE, "WorkspaceViewGD")));
-  ADD_SIGNAL(MethodInfo(
-      "group_added", PropertyInfo(Variant::OBJECT, "group", PROPERTY_HINT_RESOURCE_TYPE, "WorkspaceGroupViewGD")));
+  ADD_SIGNAL(MethodInfo("group_added",
+                        PropertyInfo(Variant::OBJECT, "group", PROPERTY_HINT_RESOURCE_TYPE, "WorkspaceGroupViewGD")));
 
   ClassDB::bind_method(D_METHOD("init"), &WorkspaceGD::init);
   ClassDB::bind_method(D_METHOD("get_workspaces"), &WorkspaceGD::get_workspaces);
@@ -32,7 +32,7 @@ void WorkspaceGD::init() {
   manager->on_workspace_created([this](Workspace &w) {
     Ref<WorkspaceViewGD> view;
     view.instantiate();
-    view->_init_view(manager, w.id());
+    view->_init_view(manager, w.runtime_id());
     call_deferred("emit_signal", "workspace_added", view);
   });
 
@@ -51,13 +51,13 @@ Array WorkspaceGD::get_workspaces() const {
   }
 
   for (const auto &w : manager->workspaces()) {
-    if (!w || w->id().empty()) {
+    if (!w) {
       continue;
     }
 
     Ref<WorkspaceViewGD> view;
     view.instantiate();
-    view->_init_view(manager, w->id());
+    view->_init_view(manager, w->runtime_id());
     arr.append(view);
   }
 

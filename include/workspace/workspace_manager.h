@@ -29,9 +29,11 @@ public:
   void on_group_created(GroupCreatedCallback cb);
 
   const Workspace *get_workspace(const std::string &id) const;
+  const Workspace *get_workspace(uint64_t runtime_id) const;
   const WorkspaceGroup *get_group(int32_t group_id) const;
 
   int32_t get_group_id_for_workspace(const std::string &workspace_id) const;
+  int32_t get_group_id_for_workspace(uint64_t runtime_id) const;
 
   const std::vector<std::unique_ptr<WorkspaceGroup>> &groups() const;
   const std::vector<std::unique_ptr<Workspace>> &workspaces() const;
@@ -54,6 +56,7 @@ private:
   ext_workspace_manager_v1_listener m_listener = {};
 
   int32_t m_next_group_id = 0;
+  uint64_t m_next_runtime_workspace_id = 1;
 
   std::vector<std::unique_ptr<WorkspaceGroup>> m_groups;
   std::vector<std::unique_ptr<Workspace>> m_workspaces;
@@ -61,10 +64,12 @@ private:
   std::unordered_map<int32_t, WorkspaceGroup *> m_groups_by_id;
 
   std::unordered_map<std::string, Workspace *> m_workspaces_by_id;
+  std::unordered_map<uint64_t, Workspace *> m_workspaces_by_runtime_id;
   std::unordered_map<ext_workspace_handle_v1 *, Workspace *> m_workspaces_by_handle;
 
   std::unordered_map<ext_workspace_handle_v1 *, int32_t> m_group_by_workspace_handle;
   std::unordered_map<std::string, int32_t> m_group_by_workspace_id;
+  std::unordered_map<uint64_t, int32_t> m_group_by_workspace_runtime_id;
 
   WorkspaceCreatedCallback m_workspace_created_cb;
   GroupCreatedCallback m_group_created_cb;

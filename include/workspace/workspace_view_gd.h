@@ -3,6 +3,7 @@
 #include "godot_cpp/classes/ref_counted.hpp"
 #include "godot_cpp/variant/packed_int32_array.hpp"
 #include "godot_cpp/variant/string.hpp"
+#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -17,12 +18,14 @@ private:
   static void _bind_methods();
 
   std::weak_ptr<WorkspaceManager> m_manager;
-  std::string m_id;
+  uint64_t m_runtime_id = 0;
 
 public:
   WorkspaceViewGD() = default;
 
-  void _init_view(std::shared_ptr<WorkspaceManager> manager, std::string id);
+  void _init_view(std::shared_ptr<WorkspaceManager> manager, uint64_t runtime_id);
+
+  int64_t get_runtime_id() const;
 
   String get_id() const;
   String get_name() const;

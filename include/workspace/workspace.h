@@ -8,10 +8,11 @@
 
 class Workspace {
 public:
-  explicit Workspace(ext_workspace_handle_v1 *handle);
+  explicit Workspace(ext_workspace_handle_v1 *handle, uint64_t runtime_id);
   ~Workspace();
 
   ext_workspace_handle_v1 *handle() const { return m_handle; }
+  uint64_t runtime_id() const { return m_runtime_id; }
 
   const std::string &id() const { return m_id; }
   const std::string &name() const { return m_name; }
@@ -32,6 +33,8 @@ private:
 
   ext_workspace_handle_v1 *m_handle = nullptr;
   ext_workspace_handle_v1_listener m_listener = {};
+
+  uint64_t m_runtime_id = 0;
 
   std::string m_id;
   std::string m_name;

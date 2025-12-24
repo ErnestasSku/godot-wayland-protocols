@@ -7,6 +7,7 @@
 #include <wayland-util.h>
 
 void WorkspaceViewGD::_bind_methods() {
+  ClassDB::bind_method(D_METHOD("get_runtime_id"), &WorkspaceViewGD::get_runtime_id);
   ClassDB::bind_method(D_METHOD("get_id"), &WorkspaceViewGD::get_id);
   ClassDB::bind_method(D_METHOD("get_name"), &WorkspaceViewGD::get_name);
   ClassDB::bind_method(D_METHOD("get_state"), &WorkspaceViewGD::get_state);
@@ -15,12 +16,26 @@ void WorkspaceViewGD::_bind_methods() {
   ClassDB::bind_method(D_METHOD("get_coordinates"), &WorkspaceViewGD::get_coordinates);
 }
 
-void WorkspaceViewGD::_init_view(std::shared_ptr<WorkspaceManager> manager, std::string id) {
+void WorkspaceViewGD::_init_view(std::shared_ptr<WorkspaceManager> manager, uint64_t runtime_id) {
   m_manager = std::move(manager);
-  m_id = std::move(id);
+  m_runtime_id = runtime_id;
 }
 
-String WorkspaceViewGD::get_id() const { return String(m_id.c_str()); }
+int64_t WorkspaceViewGD::get_runtime_id() const { return static_cast<int64_t>(m_runtime_id); }
+
+String WorkspaceViewGD::get_id() const {
+  auto manager = m_manager.lock();
+  if (!manager) {
+    return {};
+  }
+
+  const Workspace *w = manager->get_workspace(m_runtime_id);
+  if (!w) {
+    return {};
+  }
+
+  return String(w->id().c_str());
+}
 
 String WorkspaceViewGD::get_name() const {
   auto manager = m_manager.lock();
@@ -28,7 +43,7 @@ String WorkspaceViewGD::get_name() const {
     return {};
   }
 
-  const Workspace *w = manager->get_workspace(m_id);
+  const Workspace *w = manager->get_workspace(m_runtime_id);
   if (!w) {
     return {};
   }
@@ -42,7 +57,7 @@ int64_t WorkspaceViewGD::get_state() const {
     return 0;
   }
 
-  const Workspace *w = manager->get_workspace(m_id);
+  const Workspace *w = manager->get_workspace(m_runtime_id);
   if (!w) {
     return 0;
   }
@@ -56,7 +71,7 @@ int64_t WorkspaceViewGD::get_capabilities() const {
     return 0;
   }
 
-  const Workspace *w = manager->get_workspace(m_id);
+  const Workspace *w = manager->get_workspace(m_runtime_id);
   if (!w) {
     return 0;
   }
@@ -70,7 +85,7 @@ int64_t WorkspaceViewGD::get_group_id() const {
     return -1;
   }
 
-  return static_cast<int64_t>(manager->get_group_id_for_workspace(m_id));
+  return static_cast<int64_t>(manager->get_group_id_for_workspace(m_runtime_id));
 }
 
 PackedInt32Array WorkspaceViewGD::get_coordinates() const {
@@ -81,7 +96,7 @@ PackedInt32Array WorkspaceViewGD::get_coordinates() const {
     return arr;
   }
 
-  const Workspace *w = manager->get_workspace(m_id);
+  const Workspace *w = manager->get_workspace(m_runtime_id);
   if (!w) {
     return arr;
   }

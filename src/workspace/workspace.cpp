@@ -1,7 +1,7 @@
 #include "workspace/workspace.h"
 #include <cstring>
 
-Workspace::Workspace(ext_workspace_handle_v1 *handle) : m_handle(handle) {
+Workspace::Workspace(ext_workspace_handle_v1 *handle, uint64_t runtime_id) : m_handle(handle), m_runtime_id(runtime_id) {
   wl_array_init(&m_coordinates);
 
   m_listener.id = handle_id;

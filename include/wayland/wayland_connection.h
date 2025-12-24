@@ -4,6 +4,7 @@
 #include <wayland-client-protocol.h>
 
 #include <functional>
+#include <string>
 #include <vector>
 
 class WaylandConnection {
@@ -45,5 +46,12 @@ private:
     GlobalHandler handler;
   };
 
+  struct GlobalEntry {
+    std::string interface;
+    uint32_t id = 0;
+    uint32_t version = 0;
+  };
+
   std::vector<HandlerEntry> m_handlers;
+  std::vector<GlobalEntry> m_globals;
 };
