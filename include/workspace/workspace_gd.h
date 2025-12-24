@@ -2,8 +2,8 @@
 
 #include "godot_cpp/classes/ref_counted.hpp"
 #include "godot_cpp/classes/wrapped.hpp"
-#include "workspace/workspace_group.h"
 #include "workspace/workspace_manager.h"
+#include <godot_cpp/variant/array.hpp>
 #include <memory>
 
 using namespace godot;
@@ -14,7 +14,7 @@ class WorkspaceGD : public ::RefCounted {
 private:
   static void _bind_methods();
 
-  std::unique_ptr<WorkspaceManager> manager;
+  std::shared_ptr<WorkspaceManager> manager;
 
 public:
   WorkspaceGD();
@@ -22,7 +22,7 @@ public:
 
   void init();
 
-  // GDScript signals
-  void workspace_created(Workspace &workspace);
-  void group_crated(WorkspaceGroup &group);
+  Array get_workspaces() const;
+  Array get_groups() const;
+
 };

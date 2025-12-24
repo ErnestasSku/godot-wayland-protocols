@@ -2,7 +2,10 @@
 #include "algorithm"
 #include "ext-workspace-v1.h"
 
-WorkspaceGroup::WorkspaceGroup(ext_workspace_group_handle_v1 *handle) : m_handle(handle) {
+#include "workspace/workspace_manager.h"
+
+WorkspaceGroup::WorkspaceGroup(ext_workspace_group_handle_v1 *handle, WorkspaceManager *manager, int32_t group_id)
+    : m_handle(handle), m_manager(manager), m_group_id(group_id) {
   m_listener.capabilities = handle_capabilities;
   m_listener.output_enter = handle_output_enter;
   m_listener.output_leave = handle_output_leave;
@@ -20,7 +23,7 @@ WorkspaceGroup::~WorkspaceGroup() {
   }
 }
 
-const std::vector<Workspace *> &WorkspaceGroup::workspaces() const { return m_workspaces; }
+const std::vector<ext_workspace_handle_v1 *> &WorkspaceGroup::workspaces() const { return m_workspaces; }
 
 const std::vector<wl_output *> &WorkspaceGroup::outputs() const { return m_outputs; }
 
@@ -43,15 +46,23 @@ void WorkspaceGroup::handle_output_leave(void *data, ext_workspace_group_handle_
 void WorkspaceGroup::handle_workspace_enter(void *data, ext_workspace_group_handle_v1 *,
                                             ext_workspace_handle_v1 *workspace) {
   auto *self = static_cast<WorkspaceGroup *>(data);
-  self->m_workspaces.push_back(reinterpret_cast<Workspace *>(workspace));
+  self->m_workspaces.push_back(workspace);
+
+  if (self->m_manager) {
+    self->m_manager->set_workspace_handle_group(workspace, self->m_group_id);
+  }
 }
 
 void WorkspaceGroup::handle_workspace_leave(void *data, ext_workspace_group_handle_v1 *,
                                             ext_workspace_handle_v1 *workspace) {
   auto *self = static_cast<WorkspaceGroup *>(data);
   self->m_workspaces.erase(
-      std::remove(self->m_workspaces.begin(), self->m_workspaces.end(), reinterpret_cast<Workspace *>(workspace)),
+      std::remove(self->m_workspaces.begin(), self->m_workspaces.end(), workspace),
       self->m_workspaces.end());
+
+  if (self->m_manager) {
+    self->m_manager->clear_workspace_handle_group(workspace, self->m_group_id);
+  }
 }
 
 void WorkspaceGroup::handle_removed(void *data, ext_workspace_group_handle_v1 *) {

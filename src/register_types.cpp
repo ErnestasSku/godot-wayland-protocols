@@ -5,6 +5,8 @@
 #include "wayland/wayland_service.h"
 #include "workspace.h"
 #include "workspace/workspace_gd.h"
+#include "workspace/workspace_group_view_gd.h"
+#include "workspace/workspace_view_gd.h"
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/defs.hpp>
 
@@ -15,6 +17,8 @@ void initialize_wayland_module(godot::ModuleInitializationLevel p_level) {
   ClassDB::register_class<Screencopy>();
   ClassDB::register_class<Workspace>();
   ClassDB::register_class<WorkspaceGD>();
+  ClassDB::register_class<WorkspaceViewGD>();
+  ClassDB::register_class<WorkspaceGroupViewGD>();
   ClassDB::register_class<WaylandService>();
 
   Engine::get_singleton()->register_singleton("Workspace", memnew(Workspace));

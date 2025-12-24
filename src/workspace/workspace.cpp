@@ -26,7 +26,12 @@ Workspace::~Workspace() {
 // Callbacks
 void Workspace::handle_id(void *data, ext_workspace_handle_v1 *, const char *id) {
   auto *self = static_cast<Workspace *>(data);
+  const bool was_empty = self->m_id.empty();
   self->m_id = id;
+
+  if (was_empty && !self->m_id.empty() && self->m_id_available_cb) {
+    self->m_id_available_cb(*self);
+  }
 }
 
 void Workspace::handle_name(void *data, ext_workspace_handle_v1 *, const char *name) {
@@ -63,5 +68,9 @@ void Workspace::handle_capabilities(void *data, ext_workspace_handle_v1 *, uint3
 }
 
 void Workspace::handle_removed(void *data, ext_workspace_handle_v1 *) {
-  // optional cleanup
+  auto *self = static_cast<Workspace *>(data);
+
+  if (self->m_removed_cb) {
+    self->m_removed_cb(*self);
+  }
 }

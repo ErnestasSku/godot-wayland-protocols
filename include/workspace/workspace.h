@@ -2,6 +2,7 @@
 
 #include "ext-workspace-v1.h"
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <wayland-util.h>
 
@@ -17,6 +18,9 @@ public:
   const wl_array *coordinates() const { return &m_coordinates; }
   uint32_t state() const { return m_state; }
   uint32_t capabilities() const { return m_capabilities; }
+
+  void set_id_available_callback(std::function<void(Workspace &)> cb) { m_id_available_cb = std::move(cb); }
+  void set_removed_callback(std::function<void(Workspace &)> cb) { m_removed_cb = std::move(cb); }
 
 private:
   static void handle_id(void *data, ext_workspace_handle_v1 *, const char *id);
@@ -34,4 +38,7 @@ private:
   wl_array m_coordinates{};
   uint32_t m_state = 0;
   uint32_t m_capabilities = 0;
+
+  std::function<void(Workspace &)> m_id_available_cb;
+  std::function<void(Workspace &)> m_removed_cb;
 };
