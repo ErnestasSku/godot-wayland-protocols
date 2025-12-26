@@ -146,7 +146,6 @@ void WorkspaceManager::on_workspace_id_available(Workspace &workspace) {
   if (g_it != m_group_by_workspace_handle.end()) {
     m_group_by_workspace_id[id] = g_it->second;
   }
-
 }
 
 void WorkspaceManager::on_workspace_removed(Workspace &workspace) {
@@ -215,10 +214,8 @@ void WorkspaceManager::handle_workspace(void *data, ext_workspace_manager_v1 *, 
 
 void WorkspaceManager::handle_done(void *, ext_workspace_manager_v1 *) {
   // Snapshot complete
-  godot::UtilityFunctions::print("handle done");
 }
 
 void WorkspaceManager::handle_finished(void *, ext_workspace_manager_v1 *) {
   // No more events
-  godot::UtilityFunctions::print("handle finished");
 }
