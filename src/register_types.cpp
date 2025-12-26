@@ -1,9 +1,7 @@
 #include "godot_cpp/classes/engine.hpp"
 #include "godot_cpp/core/memory.hpp"
 #include "screencopy.h"
-#include "wayland.h"
 #include "wayland/wayland_service.h"
-#include "workspace.h"
 #include "workspace/workspace_gd.h"
 #include "workspace/workspace_group_view_gd.h"
 #include "workspace/workspace_view_gd.h"
@@ -15,14 +13,12 @@ void initialize_wayland_module(godot::ModuleInitializationLevel p_level) {
     return;
 
   ClassDB::register_class<Screencopy>();
-  ClassDB::register_class<Workspace>();
   ClassDB::register_class<WorkspaceGD>();
   ClassDB::register_class<WorkspaceViewGD>();
   ClassDB::register_class<WorkspaceGroupViewGD>();
   ClassDB::register_class<WaylandService>();
 
-  Engine::get_singleton()->register_singleton("Workspace", memnew(Workspace));
-  Engine::get_singleton()->register_singleton("WorkspaceGD_single", memnew(WorkspaceGD));
+  Engine::get_singleton()->register_singleton("WorkspaceGD", memnew(WorkspaceGD));
 }
 
 void uninitialize_wayland_module(godot::ModuleInitializationLevel p_level) {
