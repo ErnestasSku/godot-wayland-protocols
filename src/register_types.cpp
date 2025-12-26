@@ -13,10 +13,10 @@ void initialize_wayland_module(godot::ModuleInitializationLevel p_level) {
     return;
 
   ClassDB::register_class<Screencopy>();
-  ClassDB::register_class<WorkspaceGD>();
-  ClassDB::register_class<WorkspaceViewGD>();
-  ClassDB::register_class<WorkspaceGroupViewGD>();
-  ClassDB::register_class<WaylandService>();
+  ClassDB::register_class<WorkspaceGD>(true);
+  ClassDB::register_class<WorkspaceViewGD>(true);
+  ClassDB::register_class<WorkspaceGroupViewGD>(true);
+  ClassDB::register_class<WaylandService>(true);
 
   Engine::get_singleton()->register_singleton("WorkspaceGD", memnew(WorkspaceGD));
 }
