@@ -24,6 +24,12 @@ private:
 public:
   WorkspaceViewGD() = default;
 
+  enum StateFlags {
+    ACTIVE = 1,
+    URGENT = 2,
+    HIDDEN = 4,
+  };
+
   void _init_view(std::shared_ptr<WorkspaceManager> manager, Workspace *workspace, uint64_t runtime_id);
 
   int64_t get_runtime_id() const;

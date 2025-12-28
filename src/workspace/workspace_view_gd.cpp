@@ -1,10 +1,15 @@
 #include "workspace/workspace_view_gd.h"
 
+#include "godot_cpp/classes/global_constants.hpp"
+#include "godot_cpp/core/binder_common.hpp"
 #include "godot_cpp/core/class_db.hpp"
+#include "godot_cpp/core/object.hpp"
 #include "workspace/workspace.h"
 #include "workspace/workspace_manager.h"
 #include <cstdint>
 #include <wayland-util.h>
+
+VARIANT_ENUM_CAST(WorkspaceViewGD::StateFlags);
 
 void WorkspaceViewGD::_bind_methods() {
   ClassDB::bind_method(D_METHOD("get_runtime_id"), &WorkspaceViewGD::get_runtime_id);
@@ -14,6 +19,12 @@ void WorkspaceViewGD::_bind_methods() {
   ClassDB::bind_method(D_METHOD("get_capabilities"), &WorkspaceViewGD::get_capabilities);
   ClassDB::bind_method(D_METHOD("get_group_id"), &WorkspaceViewGD::get_group_id);
   ClassDB::bind_method(D_METHOD("get_coordinates"), &WorkspaceViewGD::get_coordinates);
+
+  ADD_PROPERTY(PropertyInfo(Variant::INT, "state", godot::PROPERTY_HINT_FLAGS, "Active,Urgent,Hidden"), "",
+               "get_state");
+  BIND_ENUM_CONSTANT(ACTIVE);
+  BIND_ENUM_CONSTANT(URGENT);
+  BIND_ENUM_CONSTANT(HIDDEN);
 }
 
 void WorkspaceViewGD::_init_view(std::shared_ptr<WorkspaceManager> manager, Workspace *workspace, uint64_t runtime_id) {
