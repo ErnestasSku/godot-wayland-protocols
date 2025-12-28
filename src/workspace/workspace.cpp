@@ -91,7 +91,7 @@ void Workspace::handle_capabilities(void *data, ext_workspace_handle_v1 *, uint3
   auto *self = static_cast<Workspace *>(data);
   self->m_capabilities = caps;
 
-  if (self->m_capabilities) {
+  if (self->m_capabilities_changed_cb) {
     self->m_capabilities_changed_cb(caps);
   }
 }
