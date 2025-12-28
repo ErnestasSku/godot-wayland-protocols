@@ -25,6 +25,13 @@ Workspace::~Workspace() {
   }
 }
 
+void Workspace::on_id_changed(IdChangedCallback cb) { m_id_changed_cb = std::move(cb); }
+void Workspace::on_name_changed(NameChangedCallback cb) { m_name_changed_cb = std::move(cb); }
+void Workspace::on_coordinates_changed(CoordinatesChangedCallback cb) { m_coordinates_changed_cb = std::move(cb); }
+void Workspace::on_capabilities_changed(CapabilitiesChangedCallback cb) { m_capabilities_changed_cb = std::move(cb); }
+void Workspace::on_state_changed(StateChangedCallback cb) { m_state_changed_cb = std::move(cb); }
+void Workspace::on_removed(RemovedCallback cb) { m_removed_cb = std::move(cb); }
+
 // Callbacks
 void Workspace::handle_id(void *data, ext_workspace_handle_v1 *, const char *id) {
   auto *self = static_cast<Workspace *>(data);
@@ -34,11 +41,19 @@ void Workspace::handle_id(void *data, ext_workspace_handle_v1 *, const char *id)
   if (was_empty && !self->m_id.empty() && self->m_id_available_cb) {
     self->m_id_available_cb(*self);
   }
+
+  if (self->m_id_changed_cb) {
+    self->m_id_changed_cb(id);
+  }
 }
 
 void Workspace::handle_name(void *data, ext_workspace_handle_v1 *, const char *name) {
   auto *self = static_cast<Workspace *>(data);
   self->m_name = name;
+
+  if (self->m_name_changed_cb) {
+    self->m_name_changed_cb(name);
+  }
 }
 
 void Workspace::handle_cooridinates(void *data, ext_workspace_handle_v1 *, wl_array *coordinates) {
@@ -57,20 +72,36 @@ void Workspace::handle_cooridinates(void *data, ext_workspace_handle_v1 *, wl_ar
   }
 
   std::memcpy(dst, coordinates->data, coordinates->size);
+
+  if (self->m_coordinates_changed_cb) {
+    self->m_coordinates_changed_cb(coordinates);
+  }
 }
 
 void Workspace::handle_state(void *data, ext_workspace_handle_v1 *, uint32_t state) {
   auto *self = static_cast<Workspace *>(data);
   self->m_state = state;
+
+  if (self->m_state_changed_cb) {
+    self->m_state_changed_cb(state);
+  }
 }
 
 void Workspace::handle_capabilities(void *data, ext_workspace_handle_v1 *, uint32_t caps) {
   auto *self = static_cast<Workspace *>(data);
   self->m_capabilities = caps;
+
+  if (self->m_capabilities) {
+    self->m_capabilities_changed_cb(caps);
+  }
 }
 
 void Workspace::handle_removed(void *data, ext_workspace_handle_v1 *) {
   auto *self = static_cast<Workspace *>(data);
+
+  if (self->m_removed_cb) {
+    self->m_removed_cb();
+  }
 
   if (self->m_removed_manager_cb) {
     self->m_removed_manager_cb(*self);
