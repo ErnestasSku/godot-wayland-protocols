@@ -5,7 +5,7 @@
 #include "godot_cpp/variant/string.hpp"
 #include <cstdint>
 #include <memory>
-#include <string>
+#include <workspace/workspace.h>
 
 class WorkspaceManager;
 
@@ -18,6 +18,7 @@ private:
   static void _bind_methods();
 
   std::weak_ptr<WorkspaceManager> m_manager;
+  std::weak_ptr<Workspace> m_workspace;
   uint64_t m_runtime_id = 0;
 
 public:

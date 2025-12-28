@@ -42,7 +42,7 @@ private:
   void set_workspace_handle_group(ext_workspace_handle_v1 *workspace_handle, int32_t group_id);
   void clear_workspace_handle_group(ext_workspace_handle_v1 *workspace_handle, int32_t group_id);
   void on_workspace_id_available(Workspace &workspace);
-  void on_workspace_removed(Workspace &workspace);
+  void remove_workspace(Workspace &workspace);
 
   static void handle_workspace_group(void *data, ext_workspace_manager_v1 *manager,
                                      ext_workspace_group_handle_v1 *group);

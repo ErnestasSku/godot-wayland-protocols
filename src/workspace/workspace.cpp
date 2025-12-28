@@ -1,7 +1,9 @@
 #include "workspace/workspace.h"
+#include "workspace/workspace_manager.h"
 #include <cstring>
 
-Workspace::Workspace(ext_workspace_handle_v1 *handle, uint64_t runtime_id) : m_handle(handle), m_runtime_id(runtime_id) {
+Workspace::Workspace(ext_workspace_handle_v1 *handle, WorkspaceManager *manager, uint64_t runtime_id)
+    : m_handle(handle), m_manager(manager), m_runtime_id(runtime_id) {
   wl_array_init(&m_coordinates);
 
   m_listener.id = handle_id;
@@ -70,7 +72,7 @@ void Workspace::handle_capabilities(void *data, ext_workspace_handle_v1 *, uint3
 void Workspace::handle_removed(void *data, ext_workspace_handle_v1 *) {
   auto *self = static_cast<Workspace *>(data);
 
-  if (self->m_removed_cb) {
-    self->m_removed_cb(*self);
+  if (self->m_removed_manager_cb) {
+    self->m_removed_manager_cb(*self);
   }
 }
