@@ -16,69 +16,48 @@ void WorkspaceViewGD::_bind_methods() {
   ClassDB::bind_method(D_METHOD("get_coordinates"), &WorkspaceViewGD::get_coordinates);
 }
 
-void WorkspaceViewGD::_init_view(std::shared_ptr<WorkspaceManager> manager, uint64_t runtime_id) {
+void WorkspaceViewGD::_init_view(std::shared_ptr<WorkspaceManager> manager, Workspace *workspace, uint64_t runtime_id) {
   m_manager = std::move(manager);
+  m_workspace = workspace;
   m_runtime_id = runtime_id;
 }
 
 int64_t WorkspaceViewGD::get_runtime_id() const { return static_cast<int64_t>(m_runtime_id); }
 
 String WorkspaceViewGD::get_id() const {
-  auto manager = m_manager.lock();
-  if (!manager) {
+  if (!m_workspace) {
     return {};
   }
 
-  const Workspace *w = manager->get_workspace(m_runtime_id);
-  if (!w) {
-    return {};
-  }
-
-  return String(w->id().c_str());
+  return String(m_workspace->id().c_str());
 }
 
 String WorkspaceViewGD::get_name() const {
-  auto manager = m_manager.lock();
-  if (!manager) {
+  if (!m_workspace) {
     return {};
   }
 
-  const Workspace *w = manager->get_workspace(m_runtime_id);
-  if (!w) {
-    return {};
-  }
-
-  return String(w->name().c_str());
+  return String(m_workspace->name().c_str());
 }
 
+// TODO: consider implementing a WorkspaceState godot facint enum/class
 int64_t WorkspaceViewGD::get_state() const {
-  auto manager = m_manager.lock();
-  if (!manager) {
+  if (!m_workspace) {
     return 0;
   }
 
-  const Workspace *w = manager->get_workspace(m_runtime_id);
-  if (!w) {
-    return 0;
-  }
-
-  return static_cast<int64_t>(w->state());
+  return static_cast<int64_t>(m_workspace->state());
 }
 
 int64_t WorkspaceViewGD::get_capabilities() const {
-  auto manager = m_manager.lock();
-  if (!manager) {
+  if (!m_workspace) {
     return 0;
   }
 
-  const Workspace *w = manager->get_workspace(m_runtime_id);
-  if (!w) {
-    return 0;
-  }
-
-  return static_cast<int64_t>(w->capabilities());
+  return static_cast<int64_t>(m_workspace->capabilities());
 }
 
+// TODO: This should be removed.
 int64_t WorkspaceViewGD::get_group_id() const {
   auto manager = m_manager.lock();
   if (!manager) {
@@ -91,17 +70,11 @@ int64_t WorkspaceViewGD::get_group_id() const {
 PackedInt32Array WorkspaceViewGD::get_coordinates() const {
   PackedInt32Array arr;
 
-  auto manager = m_manager.lock();
-  if (!manager) {
+  if (!m_workspace) {
     return arr;
   }
 
-  const Workspace *w = manager->get_workspace(m_runtime_id);
-  if (!w) {
-    return arr;
-  }
-
-  const wl_array *coords = w->coordinates();
+  const wl_array *coords = m_workspace->coordinates();
   if (!coords || coords->size == 0) {
     return arr;
   }

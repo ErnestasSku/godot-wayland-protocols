@@ -18,13 +18,13 @@ private:
   static void _bind_methods();
 
   std::weak_ptr<WorkspaceManager> m_manager;
-  std::weak_ptr<Workspace> m_workspace;
+  Workspace *m_workspace;
   uint64_t m_runtime_id = 0;
 
 public:
   WorkspaceViewGD() = default;
 
-  void _init_view(std::shared_ptr<WorkspaceManager> manager, uint64_t runtime_id);
+  void _init_view(std::shared_ptr<WorkspaceManager> manager, Workspace *workspace, uint64_t runtime_id);
 
   int64_t get_runtime_id() const;
 
