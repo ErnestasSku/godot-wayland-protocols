@@ -9,8 +9,8 @@
 #include <cstdint>
 #include <wayland-util.h>
 
-// TODO: implement workspace_capabilities enum later.
 VARIANT_ENUM_CAST(WorkspaceViewGD::StateFlags);
+VARIANT_ENUM_CAST(WorkspaceViewGD::CapabilitiesFlags);
 
 void WorkspaceViewGD::_bind_methods() {
   ClassDB::bind_method(D_METHOD("get_runtime_id"), &WorkspaceViewGD::get_runtime_id);
@@ -26,6 +26,12 @@ void WorkspaceViewGD::_bind_methods() {
   BIND_ENUM_CONSTANT(ACTIVE);
   BIND_ENUM_CONSTANT(URGENT);
   BIND_ENUM_CONSTANT(HIDDEN);
+
+  ADD_PROPERTY(PropertyInfo(Variant::INT, "capabilities", godot::PROPERTY_HINT_FLAGS), "", "get_capabilities");
+  BIND_ENUM_CONSTANT(ACTIVATE);
+  BIND_ENUM_CONSTANT(DEACTIVATE);
+  BIND_ENUM_CONSTANT(REMOVE);
+  BIND_CONSTANT(ASSIGN);
 
   ADD_SIGNAL(MethodInfo("id_changed", PropertyInfo(Variant::STRING, "id")));
   ADD_SIGNAL(MethodInfo("name_changed", PropertyInfo(Variant::STRING, "name")));

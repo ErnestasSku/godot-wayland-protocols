@@ -30,6 +30,13 @@ public:
     HIDDEN = 4,
   };
 
+  enum CapabilitiesFlags {
+    ACTIVATE = 1,
+    DEACTIVATE = 2,
+    REMOVE = 4,
+    ASSIGN = 8,
+  };
+
   void _init_view(std::shared_ptr<WorkspaceManager> manager, Workspace *workspace, uint64_t runtime_id);
 
   int64_t get_runtime_id() const;
