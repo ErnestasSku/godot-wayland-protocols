@@ -7,7 +7,7 @@ Planned protocol implementations:
 | Protocol                    | Status                                                                                           |
 |-----------------------------|--------------------------------------------------------------------------------------------------|
 | ext-workspace-v1            | WIP                                                                                              |
-| wlr-screencopy-unstable-v1  | Initial explaratory implementation                                                               |
+| wlr-screencopy-unstable-v1  | Initial exploratory implementation                                                               |
 | ext-session-lock-v1         | TODO                                                                                             |
 | wlr-layer-shell-unstable-v1 | TODO. (Might not be needed, as there is a implementation in godot repo, which is not merged yet) |
 
