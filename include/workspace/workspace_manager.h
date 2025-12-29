@@ -32,6 +32,8 @@ public:
   const Workspace *get_workspace(uint64_t runtime_id) const;
   const WorkspaceGroup *get_group(int32_t group_id) const;
 
+  void commit();
+
   int32_t get_group_id_for_workspace(const std::string &workspace_id) const;
   int32_t get_group_id_for_workspace(uint64_t runtime_id) const;
 

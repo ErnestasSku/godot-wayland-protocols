@@ -1,5 +1,7 @@
 #include "workspace/workspace.h"
 #include "ext-workspace-v1.h"
+#include "godot_cpp/variant/utility_functions.hpp"
+#include "wayland/wayland_connection.h"
 #include "workspace/workspace_manager.h"
 #include <cstring>
 
@@ -115,4 +117,5 @@ void Workspace::activate() {
   }
 
   ext_workspace_handle_v1_activate(m_handle);
+  m_manager->commit();
 }

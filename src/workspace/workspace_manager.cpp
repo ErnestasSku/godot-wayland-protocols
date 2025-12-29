@@ -1,4 +1,5 @@
 #include "workspace/workspace_manager.h"
+#include "ext-workspace-v1.h"
 #include "wayland/wayland_connection.h"
 #include "workspace/workspace.h"
 #include "workspace/workspace_group.h"
@@ -218,4 +219,13 @@ void WorkspaceManager::handle_done(void *, ext_workspace_manager_v1 *) {
 
 void WorkspaceManager::handle_finished(void *, ext_workspace_manager_v1 *) {
   // No more events
+}
+
+void WorkspaceManager::commit() {
+  if (!m_manager) {
+    return;
+  }
+
+  ext_workspace_manager_v1_commit(m_manager);
+  WaylandConnection::instance().flush();
 }
