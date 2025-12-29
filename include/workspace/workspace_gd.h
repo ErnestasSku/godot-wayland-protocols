@@ -1,6 +1,6 @@
 #pragma once
 
-#include "godot_cpp/classes/ref_counted.hpp"
+#include "godot_cpp/classes/object.hpp"
 #include "godot_cpp/classes/wrapped.hpp"
 #include "workspace/workspace_manager.h"
 #include <godot_cpp/variant/array.hpp>
@@ -8,8 +8,8 @@
 
 using namespace godot;
 
-class WorkspaceGD : public ::RefCounted {
-  GDCLASS(WorkspaceGD, RefCounted)
+class WorkspaceGD : public ::Object {
+  GDCLASS(WorkspaceGD, Object)
 
 private:
   static void _bind_methods();
@@ -24,5 +24,4 @@ public:
 
   Array get_workspaces() const;
   Array get_groups() const;
-
 };
