@@ -23,6 +23,7 @@ public:
 
   void roundtrip() const;
   void dispatch_pending() const;
+  void flush() const;
   void pump_events();
 
   void register_global(const char *interface, GlobalHandler handler);

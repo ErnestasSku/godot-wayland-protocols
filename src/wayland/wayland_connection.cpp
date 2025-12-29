@@ -46,6 +46,14 @@ void WaylandConnection::dispatch_pending() const {
   }
 }
 
+void WaylandConnection::flush() const {
+  if (m_display) {
+    return;
+  }
+
+  wl_display_flush(m_display);
+}
+
 void WaylandConnection::pump_events() {
   if (!m_display) {
     static bool warned = false;
@@ -65,10 +73,10 @@ void WaylandConnection::pump_events() {
   wl_display_flush(m_display);
 
   int fd = wl_display_get_fd(m_display);
-  struct pollfd pfd {
-    .fd = fd,
-    .events = POLLIN,
-    .revents = 0,
+  struct pollfd pfd{
+      .fd = fd,
+      .events = POLLIN,
+      .revents = 0,
   };
 
   int r = poll(&pfd, 1, 0);

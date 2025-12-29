@@ -32,7 +32,7 @@ void WorkspaceGD::init() {
   manager->on_workspace_created([this](Workspace &w) {
     Ref<WorkspaceViewGD> view;
     view.instantiate();
-    view->_init_view(manager, w.runtime_id());
+    view->_init_view(manager, &w, w.runtime_id());
     call_deferred("emit_signal", "workspace_added", view);
   });
 
@@ -57,7 +57,7 @@ Array WorkspaceGD::get_workspaces() const {
 
     Ref<WorkspaceViewGD> view;
     view.instantiate();
-    view->_init_view(manager, w->runtime_id());
+    view->_init_view(manager, w.get(), w->runtime_id());
     arr.append(view);
   }
 

@@ -32,6 +32,8 @@ public:
   const Workspace *get_workspace(uint64_t runtime_id) const;
   const WorkspaceGroup *get_group(int32_t group_id) const;
 
+  void commit();
+
   int32_t get_group_id_for_workspace(const std::string &workspace_id) const;
   int32_t get_group_id_for_workspace(uint64_t runtime_id) const;
 
@@ -42,7 +44,7 @@ private:
   void set_workspace_handle_group(ext_workspace_handle_v1 *workspace_handle, int32_t group_id);
   void clear_workspace_handle_group(ext_workspace_handle_v1 *workspace_handle, int32_t group_id);
   void on_workspace_id_available(Workspace &workspace);
-  void on_workspace_removed(Workspace &workspace);
+  void remove_workspace(Workspace &workspace);
 
   static void handle_workspace_group(void *data, ext_workspace_manager_v1 *manager,
                                      ext_workspace_group_handle_v1 *group);

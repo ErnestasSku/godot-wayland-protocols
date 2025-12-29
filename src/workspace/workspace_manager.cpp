@@ -1,4 +1,5 @@
 #include "workspace/workspace_manager.h"
+#include "ext-workspace-v1.h"
 #include "wayland/wayland_connection.h"
 #include "workspace/workspace.h"
 #include "workspace/workspace_group.h"
@@ -148,7 +149,7 @@ void WorkspaceManager::on_workspace_id_available(Workspace &workspace) {
   }
 }
 
-void WorkspaceManager::on_workspace_removed(Workspace &workspace) {
+void WorkspaceManager::remove_workspace(Workspace &workspace) {
   const std::string &id = workspace.id();
   if (!id.empty()) {
     m_workspaces_by_id.erase(id);
@@ -192,13 +193,13 @@ void WorkspaceManager::handle_workspace(void *data, ext_workspace_manager_v1 *, 
   auto *self = static_cast<WorkspaceManager *>(data);
 
   const uint64_t runtime_id = self->m_next_runtime_workspace_id++;
-  auto workspace = std::make_unique<Workspace>(handle, runtime_id);
+  auto workspace = std::make_unique<Workspace>(handle, self, runtime_id);
   Workspace &ref = *workspace;
 
   self->m_workspaces_by_handle[handle] = &ref;
   self->m_workspaces_by_runtime_id[runtime_id] = &ref;
   ref.set_id_available_callback([self](Workspace &w) { self->on_workspace_id_available(w); });
-  ref.set_removed_callback([self](Workspace &w) { self->on_workspace_removed(w); });
+  ref.set_removed_callback([self](Workspace &w) { self->remove_workspace(w); });
 
   auto g_it = self->m_group_by_workspace_handle.find(handle);
   if (g_it != self->m_group_by_workspace_handle.end()) {
@@ -218,4 +219,13 @@ void WorkspaceManager::handle_done(void *, ext_workspace_manager_v1 *) {
 
 void WorkspaceManager::handle_finished(void *, ext_workspace_manager_v1 *) {
   // No more events
+}
+
+void WorkspaceManager::commit() {
+  if (!m_manager) {
+    return;
+  }
+
+  ext_workspace_manager_v1_commit(m_manager);
+  WaylandConnection::instance().flush();
 }

@@ -5,7 +5,7 @@
 #include "godot_cpp/variant/string.hpp"
 #include <cstdint>
 #include <memory>
-#include <string>
+#include <workspace/workspace.h>
 
 class WorkspaceManager;
 
@@ -18,12 +18,26 @@ private:
   static void _bind_methods();
 
   std::weak_ptr<WorkspaceManager> m_manager;
+  Workspace *m_workspace;
   uint64_t m_runtime_id = 0;
 
 public:
   WorkspaceViewGD() = default;
 
-  void _init_view(std::shared_ptr<WorkspaceManager> manager, uint64_t runtime_id);
+  enum StateFlags {
+    ACTIVE = 1,
+    URGENT = 2,
+    HIDDEN = 4,
+  };
+
+  enum CapabilitiesFlags {
+    ACTIVATE = 1,
+    DEACTIVATE = 2,
+    REMOVE = 4,
+    ASSIGN = 8,
+  };
+
+  void _init_view(std::shared_ptr<WorkspaceManager> manager, Workspace *workspace, uint64_t runtime_id);
 
   int64_t get_runtime_id() const;
 
@@ -33,4 +47,6 @@ public:
   int64_t get_capabilities() const;
   int64_t get_group_id() const;
   PackedInt32Array get_coordinates() const;
+
+  void activate() const;
 };

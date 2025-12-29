@@ -1,10 +1,16 @@
 #include "workspace/workspace_view_gd.h"
-
+#include "godot_cpp/classes/global_constants.hpp"
+#include "godot_cpp/core/binder_common.hpp"
 #include "godot_cpp/core/class_db.hpp"
+#include "godot_cpp/core/object.hpp"
+#include "godot_cpp/core/property_info.hpp"
 #include "workspace/workspace.h"
 #include "workspace/workspace_manager.h"
 #include <cstdint>
 #include <wayland-util.h>
+
+VARIANT_ENUM_CAST(WorkspaceViewGD::StateFlags);
+VARIANT_ENUM_CAST(WorkspaceViewGD::CapabilitiesFlags);
 
 void WorkspaceViewGD::_bind_methods() {
   ClassDB::bind_method(D_METHOD("get_runtime_id"), &WorkspaceViewGD::get_runtime_id);
@@ -14,71 +20,91 @@ void WorkspaceViewGD::_bind_methods() {
   ClassDB::bind_method(D_METHOD("get_capabilities"), &WorkspaceViewGD::get_capabilities);
   ClassDB::bind_method(D_METHOD("get_group_id"), &WorkspaceViewGD::get_group_id);
   ClassDB::bind_method(D_METHOD("get_coordinates"), &WorkspaceViewGD::get_coordinates);
+
+  ClassDB::bind_method(D_METHOD("activate"), &WorkspaceViewGD::activate);
+
+  ADD_PROPERTY(PropertyInfo(Variant::INT, "state", godot::PROPERTY_HINT_FLAGS, "Active,Urgent,Hidden"), "",
+               "get_state");
+  BIND_ENUM_CONSTANT(ACTIVE);
+  BIND_ENUM_CONSTANT(URGENT);
+  BIND_ENUM_CONSTANT(HIDDEN);
+
+  ADD_PROPERTY(PropertyInfo(Variant::INT, "capabilities", godot::PROPERTY_HINT_FLAGS), "", "get_capabilities");
+  BIND_ENUM_CONSTANT(ACTIVATE);
+  BIND_ENUM_CONSTANT(DEACTIVATE);
+  BIND_ENUM_CONSTANT(REMOVE);
+  BIND_CONSTANT(ASSIGN);
+
+  ADD_SIGNAL(MethodInfo("id_changed", PropertyInfo(Variant::STRING, "id")));
+  ADD_SIGNAL(MethodInfo("name_changed", PropertyInfo(Variant::STRING, "name")));
+  ADD_SIGNAL(MethodInfo("coordinates_changed", PropertyInfo(Variant::PACKED_INT32_ARRAY, "coordinates")));
+  ADD_SIGNAL(MethodInfo("workspace_state_changed",
+                        PropertyInfo(Variant::INT, "state", PROPERTY_HINT_FLAGS, "WorkspaceState")));
+  ADD_SIGNAL(MethodInfo("capabilities_changed", PropertyInfo(Variant::INT, "capabilities")));
+  ADD_SIGNAL(MethodInfo("workspace_removed"));
 }
 
-void WorkspaceViewGD::_init_view(std::shared_ptr<WorkspaceManager> manager, uint64_t runtime_id) {
+void WorkspaceViewGD::_init_view(std::shared_ptr<WorkspaceManager> manager, Workspace *workspace, uint64_t runtime_id) {
   m_manager = std::move(manager);
+  m_workspace = workspace;
   m_runtime_id = runtime_id;
+
+  workspace->on_id_changed([this](std::string id) { call_deferred("emit_signal", "id_changed", id.c_str()); });
+  workspace->on_name_changed([this](std::string name) { call_deferred("emit_signal", "name_changed", name.c_str()); });
+  workspace->on_coordinates_changed([this](wl_array *coordinates) {
+    PackedInt32Array arr;
+    const size_t count = coordinates->size / sizeof(uint32_t);
+    arr.resize(static_cast<int>(count));
+
+    const uint32_t *data = static_cast<const uint32_t *>(coordinates->data);
+    for (size_t i = 0; i < count; i++) {
+      arr.set(static_cast<int>(i), static_cast<int32_t>(data[i]));
+    }
+
+    call_deferred("emit_signal", "coordinates_changed", arr);
+  });
+  workspace->on_state_changed(
+      [this](uint32_t state) { call_deferred("emit_signal", "workspace_state_changed", state); });
+  workspace->on_capabilities_changed(
+      [this](uint32_t capabilities) { call_deferred("emit_signal", "capabilities_changed", capabilities); });
+  workspace->on_removed([this]() { call_deferred("emit_signal", "workspace_removed"); });
 }
 
 int64_t WorkspaceViewGD::get_runtime_id() const { return static_cast<int64_t>(m_runtime_id); }
 
 String WorkspaceViewGD::get_id() const {
-  auto manager = m_manager.lock();
-  if (!manager) {
+  if (!m_workspace) {
     return {};
   }
 
-  const Workspace *w = manager->get_workspace(m_runtime_id);
-  if (!w) {
-    return {};
-  }
-
-  return String(w->id().c_str());
+  return String(m_workspace->id().c_str());
 }
 
 String WorkspaceViewGD::get_name() const {
-  auto manager = m_manager.lock();
-  if (!manager) {
+  if (!m_workspace) {
     return {};
   }
 
-  const Workspace *w = manager->get_workspace(m_runtime_id);
-  if (!w) {
-    return {};
-  }
-
-  return String(w->name().c_str());
+  return String(m_workspace->name().c_str());
 }
 
 int64_t WorkspaceViewGD::get_state() const {
-  auto manager = m_manager.lock();
-  if (!manager) {
+  if (!m_workspace) {
     return 0;
   }
 
-  const Workspace *w = manager->get_workspace(m_runtime_id);
-  if (!w) {
-    return 0;
-  }
-
-  return static_cast<int64_t>(w->state());
+  return static_cast<int64_t>(m_workspace->state());
 }
 
 int64_t WorkspaceViewGD::get_capabilities() const {
-  auto manager = m_manager.lock();
-  if (!manager) {
+  if (!m_workspace) {
     return 0;
   }
 
-  const Workspace *w = manager->get_workspace(m_runtime_id);
-  if (!w) {
-    return 0;
-  }
-
-  return static_cast<int64_t>(w->capabilities());
+  return static_cast<int64_t>(m_workspace->capabilities());
 }
 
+// TODO: This should be removed.
 int64_t WorkspaceViewGD::get_group_id() const {
   auto manager = m_manager.lock();
   if (!manager) {
@@ -91,17 +117,11 @@ int64_t WorkspaceViewGD::get_group_id() const {
 PackedInt32Array WorkspaceViewGD::get_coordinates() const {
   PackedInt32Array arr;
 
-  auto manager = m_manager.lock();
-  if (!manager) {
+  if (!m_workspace) {
     return arr;
   }
 
-  const Workspace *w = manager->get_workspace(m_runtime_id);
-  if (!w) {
-    return arr;
-  }
-
-  const wl_array *coords = w->coordinates();
+  const wl_array *coords = m_workspace->coordinates();
   if (!coords || coords->size == 0) {
     return arr;
   }
@@ -115,4 +135,12 @@ PackedInt32Array WorkspaceViewGD::get_coordinates() const {
   }
 
   return arr;
+}
+
+void WorkspaceViewGD::activate() const {
+  if (!m_workspace) {
+    return;
+  }
+
+  m_workspace->activate();
 }
