@@ -25,7 +25,7 @@ void uninitialize_wayland_module(godot::ModuleInitializationLevel p_level) {
   if (p_level != godot::MODULE_INITIALIZATION_LEVEL_SCENE)
     return;
 
-  Engine::get_singleton()->unregister_singleton("Workspace");
+  Engine::get_singleton()->unregister_singleton("WorkspaceGD");
 }
 
 extern "C" {
