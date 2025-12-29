@@ -47,4 +47,6 @@ public:
   int64_t get_capabilities() const;
   int64_t get_group_id() const;
   PackedInt32Array get_coordinates() const;
+
+  void activate() const;
 };

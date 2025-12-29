@@ -21,6 +21,8 @@ void WorkspaceViewGD::_bind_methods() {
   ClassDB::bind_method(D_METHOD("get_group_id"), &WorkspaceViewGD::get_group_id);
   ClassDB::bind_method(D_METHOD("get_coordinates"), &WorkspaceViewGD::get_coordinates);
 
+  ClassDB::bind_method(D_METHOD("activate"), &WorkspaceViewGD::activate);
+
   ADD_PROPERTY(PropertyInfo(Variant::INT, "state", godot::PROPERTY_HINT_FLAGS, "Active,Urgent,Hidden"), "",
                "get_state");
   BIND_ENUM_CONSTANT(ACTIVE);
@@ -133,4 +135,12 @@ PackedInt32Array WorkspaceViewGD::get_coordinates() const {
   }
 
   return arr;
+}
+
+void WorkspaceViewGD::activate() const {
+  if (!m_workspace) {
+    return;
+  }
+
+  m_workspace->activate();
 }
