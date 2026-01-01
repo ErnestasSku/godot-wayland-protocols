@@ -37,8 +37,11 @@ public:
   uint32_t state() const { return m_state; }
   uint32_t capabilities() const { return m_capabilities; }
 
-  // TODO: implement other methods: assign, destroy, deactivate, remove
+  void destroy();
   void activate();
+  void deactivate();
+  void assign(int32_t group_id);
+  void remove();
 
   void set_id_available_callback(std::function<void(Workspace &)> cb) { m_id_available_cb = std::move(cb); }
   void set_removed_callback(std::function<void(Workspace &)> cb) { m_removed_manager_cb = std::move(cb); }

@@ -21,7 +21,11 @@ void WorkspaceViewGD::_bind_methods() {
   ClassDB::bind_method(D_METHOD("get_group_id"), &WorkspaceViewGD::get_group_id);
   ClassDB::bind_method(D_METHOD("get_coordinates"), &WorkspaceViewGD::get_coordinates);
 
+  ClassDB::bind_method(D_METHOD("destroy"), &WorkspaceViewGD::destroy);
   ClassDB::bind_method(D_METHOD("activate"), &WorkspaceViewGD::activate);
+  ClassDB::bind_method(D_METHOD("deactivate"), &WorkspaceViewGD::deactivate);
+  ClassDB::bind_method(D_METHOD("assign", "group_id"), &WorkspaceViewGD::assign);
+  ClassDB::bind_method(D_METHOD("remove"), &WorkspaceViewGD::remove);
 
   ADD_PROPERTY(PropertyInfo(Variant::INT, "state", godot::PROPERTY_HINT_FLAGS, "Active,Urgent,Hidden"), "",
                "get_state");
@@ -137,10 +141,42 @@ PackedInt32Array WorkspaceViewGD::get_coordinates() const {
   return arr;
 }
 
+void WorkspaceViewGD::destroy() const {
+  if (!m_workspace) {
+    return;
+  }
+
+  m_workspace->destroy();
+}
+
 void WorkspaceViewGD::activate() const {
   if (!m_workspace) {
     return;
   }
 
   m_workspace->activate();
+}
+
+void WorkspaceViewGD::deactivate() const {
+  if (!m_workspace) {
+    return;
+  }
+
+  m_workspace->deactivate();
+}
+
+void WorkspaceViewGD::assign(int32_t group_id) const {
+  if (!m_workspace) {
+    return;
+  }
+
+  m_workspace->assign(group_id);
+}
+
+void WorkspaceViewGD::remove() const {
+  if (!m_workspace) {
+    return;
+  }
+
+  m_workspace->remove();
 }

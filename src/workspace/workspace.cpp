@@ -2,7 +2,9 @@
 #include "ext-workspace-v1.h"
 #include "godot_cpp/variant/utility_functions.hpp"
 #include "wayland/wayland_connection.h"
+#include "workspace/workspace_group.h"
 #include "workspace/workspace_manager.h"
+#include <cstdint>
 #include <cstring>
 
 Workspace::Workspace(ext_workspace_handle_v1 *handle, WorkspaceManager *manager, uint64_t runtime_id)
@@ -111,11 +113,52 @@ void Workspace::handle_removed(void *data, ext_workspace_handle_v1 *) {
   }
 }
 
+void Workspace::destroy() {
+  if (!m_handle) {
+    return;
+  }
+
+  ext_workspace_handle_v1_destroy(m_handle);
+  m_manager->commit();
+}
+
 void Workspace::activate() {
   if (!m_handle) {
     return;
   }
 
   ext_workspace_handle_v1_activate(m_handle);
+  m_manager->commit();
+}
+
+void Workspace::deactivate() {
+  if (!m_handle) {
+    return;
+  }
+
+  ext_workspace_handle_v1_deactivate(m_handle);
+  m_manager->commit();
+}
+
+void Workspace::assign(int32_t group_id) {
+  if (!m_handle) {
+    return;
+  }
+
+  auto group_handle = m_manager->get_group(group_id);
+  if (!group_handle) {
+    return;
+  }
+
+  ext_workspace_handle_v1_assign(m_handle, group_handle->handle());
+  m_manager->commit();
+}
+
+void Workspace::remove() {
+  if (!m_handle) {
+    return;
+  }
+
+  ext_workspace_handle_v1_remove(m_handle);
   m_manager->commit();
 }

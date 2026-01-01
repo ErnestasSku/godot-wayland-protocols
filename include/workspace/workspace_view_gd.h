@@ -48,5 +48,9 @@ public:
   int64_t get_group_id() const;
   PackedInt32Array get_coordinates() const;
 
+  void destroy() const;
   void activate() const;
+  void deactivate() const;
+  void assign(int32_t group_id) const;
+  void remove() const;
 };
