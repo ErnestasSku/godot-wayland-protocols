@@ -2,6 +2,7 @@
 
 #include "ext-workspace-v1.h"
 #include <cstdint>
+#include <string>
 #include <vector>
 #include <wayland-client-protocol.h>
 
@@ -18,6 +19,9 @@ public:
   uint32_t capabilities() const { return m_capabilities; }
   const std::vector<ext_workspace_handle_v1 *> &workspaces() const;
   const std::vector<wl_output *> &outputs() const;
+
+  void create_workspace(std::string workspace_name);
+  void destroy();
 
 private:
   static void handle_capabilities(void *data, ext_workspace_group_handle_v1 *, uint32_t capabilities);

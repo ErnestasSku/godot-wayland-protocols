@@ -29,6 +29,8 @@ int64_t WorkspaceGroupViewGD::get_capabilities() const {
   return static_cast<int64_t>(m_group->capabilities());
 }
 
-void WorkspaceGroupViewGD::create_workspace(String workspace_name) {}
+void WorkspaceGroupViewGD::create_workspace(String workspace_name) {
+  m_group->create_workspace(workspace_name.ascii().get_data());
+}
 
-void WorkspaceGroupViewGD::destroy() {}
+void WorkspaceGroupViewGD::destroy() { m_group->destroy(); }

@@ -56,9 +56,8 @@ void WorkspaceGroup::handle_workspace_enter(void *data, ext_workspace_group_hand
 void WorkspaceGroup::handle_workspace_leave(void *data, ext_workspace_group_handle_v1 *,
                                             ext_workspace_handle_v1 *workspace) {
   auto *self = static_cast<WorkspaceGroup *>(data);
-  self->m_workspaces.erase(
-      std::remove(self->m_workspaces.begin(), self->m_workspaces.end(), workspace),
-      self->m_workspaces.end());
+  self->m_workspaces.erase(std::remove(self->m_workspaces.begin(), self->m_workspaces.end(), workspace),
+                           self->m_workspaces.end());
 
   if (self->m_manager) {
     self->m_manager->clear_workspace_handle_group(workspace, self->m_group_id);
@@ -67,4 +66,22 @@ void WorkspaceGroup::handle_workspace_leave(void *data, ext_workspace_group_hand
 
 void WorkspaceGroup::handle_removed(void *data, ext_workspace_group_handle_v1 *) {
   // optional cleanup
+}
+
+void WorkspaceGroup::create_workspace(std::string workspace_name) {
+  if (!m_handle && !m_manager) {
+    return;
+  }
+
+  ext_workspace_group_handle_v1_create_workspace(m_handle, workspace_name.c_str());
+  m_manager->commit();
+}
+
+void WorkspaceGroup::destroy() {
+  if (!m_handle && !m_manager) {
+    return;
+  }
+
+  ext_workspace_group_handle_v1_destroy(m_handle);
+  m_manager->commit();
 }
