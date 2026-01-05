@@ -39,7 +39,7 @@ void WorkspaceGD::init() {
   manager->on_group_created([this](WorkspaceGroup &g) {
     Ref<WorkspaceGroupViewGD> view;
     view.instantiate();
-    view->_init_view(manager, g.id());
+    view->_init_view(&g, g.id());
     call_deferred("emit_signal", "group_added", view);
   });
 }
@@ -77,7 +77,7 @@ Array WorkspaceGD::get_groups() const {
 
     Ref<WorkspaceGroupViewGD> view;
     view.instantiate();
-    view->_init_view(manager, g->id());
+    view->_init_view(g.get(), g->id());
     arr.append(view);
   }
 

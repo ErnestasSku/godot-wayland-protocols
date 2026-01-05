@@ -7,6 +7,7 @@
 #include "workspace/workspace_view_gd.h"
 #include <godot_cpp/core/class_db.hpp>
 #include <godot_cpp/core/defs.hpp>
+#include <wayland-client-protocol.h>
 
 void initialize_wayland_module(godot::ModuleInitializationLevel p_level) {
   if (p_level != godot::MODULE_INITIALIZATION_LEVEL_SCENE)
